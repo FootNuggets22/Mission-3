@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
@@ -26,50 +27,49 @@ app.get("/", (req, res) => {
 app.post("/api/interview", async (req, res) => {
   const { jobTitle, userMessage, history } = req.body;
 
-  // Validate job title at the start of the interiview AND validate user message on subsequent calls:  
+  // Validate inputs
   const isFirstInteraction = !userMessage && (!history || history.length === 0);
-
   if (!jobTitle || (!isFirstInteraction && !userMessage)) {
     return res
       .status(400)
       .json({ error: "Job title is required, and user message is required for follow-up messages." });
   }
 
-  // Calling imported prompt function
+  // Get prompt for job title
   const prompt = interviewPrompt(jobTitle);
 
-  // Conversation history that will be sent to the API
-  // Security: Validate history format ensuring it's an array of proper objects
+  // Ensure history is an array
   const safeHistory = Array.isArray(history) ? history : [];
 
-  // 1. Prompt 2. History - Previous messages 3. Latest user message
-
+  // Transform client history and build messages for Gemini API
   const constructMessages = (prompt, history, userMessage) => {
-      if (!history.length && !userMessage) {
-        return [{ role: "user", parts: [{ text: prompt }] }];          
-      }
-      return [
-        { role: "user", parts: [{ text: prompt }] },
-        ...history,
-        { role: "user", parts: [{ text: userMessage }] },
-      ];
-  } 
+    if ((!history || history.length === 0) && !userMessage) {
+      return [{ role: "user", parts: [{ text: prompt }] }];
+    }
+
+    const formattedHistory = (history || []).map(msg => ({
+      // Gemini expects 'model' role instead of 'assistant'
+      role: msg.role === "assistant" ? "model" : msg.role,
+      parts: [{ text: msg.content }],
+    }));
+
+    return [
+      { role: "user", parts: [{ text: prompt }] },
+      ...formattedHistory,
+      { role: "user", parts: [{ text: userMessage }] },
+    ];
+  };
+
   const messages = constructMessages(prompt, safeHistory, userMessage);
-  
-  // Calling imported logger function (dev mode only)
 
   logger("Prompt", prompt);
   logger("UserMessage", userMessage);
   logger("History", history);
   logger("API payload messages", messages);
-  
+
   try {
-    
-    // Set gemini model variant
     const modelId = "gemini-1.5-flash-8b";
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-
-    // conditional logging of Gemini data when in development mode (development logs)
 
     if (process.env.NODE_ENV !== "production") {
       console.log("Sending messages to Gemini:", {
@@ -80,28 +80,18 @@ app.post("/api/interview", async (req, res) => {
       });
     }
 
-    // Call Gemini API
-
     const response = await axios.post(
       endpoint,
       { contents: messages },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      { headers: { "Content-Type": "application/json" } }
     );
-
-    // AI model response
 
     const aiReply = response.data.candidates?.[0]?.content.parts?.[0]?.text;
 
-    res.status(200).json({ aiReply, status: "success 🎯" });
+    res.status(200).json({ reply: aiReply, status: "success 🎯" });
   } catch (error) {
     console.error("Error calling Gemini API:", error?.response?.data || error.message || error);
-    res
-      .status(500)
-      .json({ error: "Failed to generate interview response 🔌🚫" });
+    res.status(500).json({ error: "Failed to generate interview response 🔌🚫" });
   }
 });
 
