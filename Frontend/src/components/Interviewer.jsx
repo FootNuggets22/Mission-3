@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import './Interviewer.css';
-
+import { useState } from "react";
+import "./Interviewer.css";
+import DOMpurify from "dompurify";
 export default function Interviewer() {
 
   const [jobTitle, setJobTitle] = useState('');
@@ -11,30 +11,35 @@ export default function Interviewer() {
     if (!jobTitle.trim()) return; // Don't proceed if job title is empty
 
     try {
-      // Send an initial request to the backend to start the interview
-      const response = await fetch('http://localhost:4000/api/interview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Sanitize job title to prevent XSS attacks
+      const safeJobTitle = DOMpurify.sanitize(jobTitle);
+
+      const response = await fetch("http://localhost:4000/api/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          jobTitle,
-          userMessage: '',     // First message is empty — just starts the flow
-          history: []          // No history at this point
-        })
+          jobTitle: safeJobTitle,
+          userMessage: "", // initial request
+          history: [],
+        }),
       });
 
       const data = await response.json();
 
       // Start chat history with user initiating and AI replying with first question
       const opening = [
-        { role: 'user', content: `I want to interview for a ${jobTitle} role.` },
-        { role: 'assistant', content: data.reply || 'Tell me about yourself.' }
+        {
+          role: "user",
+          content: `I want to interview for a ${jobTitle} role.`,
+        },
+        { role: "assistant", content: data.reply || "Tell me about yourself." },
       ];
 
       // Update chat and question count
       setChatHistory(opening);
       setQuestionCount(1);
     } catch (err) {
-      console.error('Error starting interview:', err);
+      console.error("Error starting interview:", err);
     }
   };
 
@@ -42,30 +47,37 @@ export default function Interviewer() {
   const submitResponse = async () => {
     if (!userInput.trim()) return; // Don't proceed if user input is empty
 
-    // Append the user's answer to the chat history
-    const updatedHistory = [...chatHistory, { role: 'user', content: userInput }];
+    const updatedHistory = [
+      ...chatHistory,
+      { role: "user", content: userInput },
+    ];
     setChatHistory(updatedHistory);
-    setUserInput(''); // Clear input box
+    setUserInput("");
 
     try {
-      // Send updated conversation history and latest message to the backend
-      const response = await fetch('http://localhost:4000/api/interview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Sanitize user input to prevent XSS attacks
+      const safeJobTitle = DOMpurify.sanitize(jobTitle);
+      const safeUserInput = DOMpurify.sanitize(userInput);
+
+      const response = await fetch("http://localhost:4000/api/interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           history: updatedHistory,
-          jobTitle,
-          userMessage: userInput
-        })
+          jobTitle: safeJobTitle,
+          userMessage: safeUserInput,
+        }),
       });
 
       const data = await response.json();
 
-      // Append AI's new reply to the chat history
-      setChatHistory([...updatedHistory, { role: 'assistant', content: data.reply }]);
+      setChatHistory([
+        ...updatedHistory,
+        { role: "assistant", content: data.reply },
+      ]);
       setQuestionCount((prev) => prev + 1);
     } catch (error) {
-      console.error('Error fetching AI response:', error);
+      console.error("Error fetching AI response:", error);
     }
   };
 
@@ -79,6 +91,7 @@ export default function Interviewer() {
           <input
             type="text"
             placeholder="Enter job title"
+            maxLength={50}
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
             className="job-input"
@@ -92,7 +105,10 @@ export default function Interviewer() {
         <div className="chat-box">
           {chatHistory.map((msg, idx) => (
             <div key={idx} className={`chat-message ${msg.role}`}>
-              <strong>{msg.role === 'assistant' ? 'Interviewer' : 'You'}:</strong> {msg.content}
+              <strong>
+                {msg.role === "assistant" ? "Interviewer" : "Me"}:
+              </strong>{" "}
+              {msg.content}
             </div>
           ))}
         </div>
@@ -102,9 +118,10 @@ export default function Interviewer() {
           <input
             type="text"
             placeholder="Type your answer"
+            maxLength={500}
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && submitResponse()}
+            onKeyDown={(e) => e.key === "Enter" && submitResponse()}
             className="response-input"
           />
           <button className="submit-button" onClick={submitResponse}>
