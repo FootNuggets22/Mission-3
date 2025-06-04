@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./Interviewer.css";
 import DOMpurify from "dompurify";
+import ReactMarkdown from "react-markdown";
 export default function Interviewer() {
 
   const [jobTitle, setJobTitle] = useState('');
@@ -108,7 +109,7 @@ export default function Interviewer() {
               <strong>
                 {msg.role === "assistant" ? "Interviewer" : "Me"}:
               </strong>{" "}
-              {msg.content}
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
             </div>
           ))}
         </div>
