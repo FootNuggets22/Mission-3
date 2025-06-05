@@ -4,6 +4,9 @@ import express from "express";
 import cors from "cors";
 import axios from "axios";
 
+// sanitize-html
+import sanitizeHtml from "sanitize-html";
+
 import morgan from "morgan";
 
 import logger from "./utils/logger.js";
@@ -25,9 +28,38 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/interview", async (req, res) => {
-  const { jobTitle, userMessage, history } = req.body;
+  
+  // sanitize user input and trim whitespace
+  const jobTitle = sanitizeHtml(req.body.jobTitle || "", {
+    allowedTags: [],
+    allowedAttributes: {},
+  }).trim();
 
-  // Validate inputs
+  const userMessage = sanitizeHtml(req.body.userMessage || "", {
+    allowedTags: [],
+    allowedAttributes: {},
+  }).trim();
+
+  // Raw history
+  const history = req.body.history;
+
+  // Limiting input content lengths
+  const MAX_JOB_TITLE_LENGTH = 50;
+  const MAX_USER_MESSAGE_LENGTH = 500;
+
+  if (jobTitle.length > MAX_JOB_TITLE_LENGTH) {
+    return res.status(400).json({
+      error: `Job title is too long. Maximum length is ${MAX_JOB_TITLE_LENGTH} characters.`,
+    });
+  }
+
+  if (userMessage.length > MAX_USER_MESSAGE_LENGTH) {
+    return res.status(400).json({
+      error: `User message is too long. Maximum length is ${MAX_USER_MESSAGE_LENGTH} characters.`,
+    });
+  }
+
+  // Determine if this is the first interaction
   const isFirstInteraction = !userMessage && (!history || history.length === 0);
   if (!jobTitle || (!isFirstInteraction && !userMessage)) {
     return res
