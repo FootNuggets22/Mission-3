@@ -164,8 +164,8 @@ nodemon index.js
 
 ## Contributors
 
-  <a href="https://github.com/benthuralot/mission2-may-2025/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=benthuralot/mission2-may-2025&anon=1" alt="Contributors" />
+  <a href="https://github.com/FootNuggets22/Mission-3/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=FootNuggets22/Mission-3&anon=1" alt="Contributors" />
 </a>
  
 </div>
@@ -174,8 +174,14 @@ nodemon index.js
 
 ## Contact
 
-**Project Lead:** Hershyl<br>
-**GitHub:** [benthuralot](https://github.com/benthuralot)
+**👨‍💻 Project Developer:** Hershyl Seumanu  
+**🎓 Programme:** Level 5 Diploma in AI-Powered Advanced Full Stack Development  
+**🏫 Provider:** Mission Ready HQ (Auckland, NZ)  
+**📧 Email:** [hershyls@missionreadyhq.com](mailto:hershyls@missionreadyhq.com)  
+**🔗 GitHub:** [benthuralot](https://github.com/benthuralot)  
+**📍 Location:** Auckland, New Zealand  
+
+[![GitHub: benthuralot](https://img.shields.io/badge/GitHub-benthuralot-informational?logo=github&style=flat-square)](https://github.com/benthuralot)
 
 **Project Developer:** Erekle Sesiashvili<br>
 📧 [erekles@missionreadyhq.com](mailto:erekles@missionreadyhq.com)<br>
@@ -185,7 +191,7 @@ nodemon index.js
 📧 [tutanekaim@missionreadyhq.com](mailto:tutanekaim@missionreadyhq.com)<br>
 [GitHub Profile] https://github.com/FootNuggets22<br>
 
-Project Repo: [https://github.com/benthuralot/mission2-may-2025](https://github.com/benthuralot/mission2-may-2025)
+Project Repo: [https://github.com/FootNuggets22/Mission-3](https://github.com/FootNuggets22/Mission-3)
 
 ---
 
